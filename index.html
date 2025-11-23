@@ -83,11 +83,11 @@
         canvas.height = window.innerHeight;
 
         const particles = [];
-        const particleCount = 120; // Mais partículas
-        const connectionDistance = 180;
+        const particleCount = 60; // Reduzido para menos poluição
+        const connectionDistance = 120; // Conexões mais curtas
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
-        const logoRadius = 300; // Raio ao redor da logo onde haverá mais partículas
+        const logoRadius = 350; // Área maior, mais espaçada
 
         class Particle {
             constructor(isOrbiting = false) {
@@ -126,10 +126,10 @@
                     Math.pow(this.y - centerY, 2)
                 );
                 if (distFromCenter < logoRadius) {
-                    this.radius *= 1.5;
-                    this.brightness = 1;
+                    this.radius *= 1.3;
+                    this.brightness = 0.9;
                 } else {
-                    this.brightness = 0.7;
+                    this.brightness = 0.6;
                 }
             }
 
@@ -181,9 +181,9 @@
             }
         }
 
-        // Criar partículas: 70% normais, 30% orbitando
+        // Criar partículas: 80% normais, 20% orbitando
         for (let i = 0; i < particleCount; i++) {
-            const isOrbiting = i < particleCount * 0.3;
+            const isOrbiting = i < particleCount * 0.2;
             particles.push(new Particle(isOrbiting));
         }
 
@@ -203,8 +203,8 @@
                             Math.pow(midY - centerY, 2)
                         );
 
-                        const centerBoost = distFromCenter < logoRadius ? 1.5 : 1;
-                        const opacity = (1 - distance / connectionDistance) * 0.4 * centerBoost;
+                        const centerBoost = distFromCenter < logoRadius ? 1.2 : 1;
+                        const opacity = (1 - distance / connectionDistance) * 0.25 * centerBoost;
 
                         ctx.beginPath();
                         ctx.strokeStyle = `rgba(0, 217, 255, ${opacity})`;
