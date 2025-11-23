@@ -15,6 +15,50 @@
             overflow: hidden;
             background: #0a0e27;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+        }
+
+        /* Gradiente animado de fundo */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(0, 217, 255, 0.1) 0%, rgba(10, 14, 39, 0) 70%);
+            animation: pulseGradient 4s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes pulseGradient {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Efeito scanline */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 217, 255, 0.03) 0px,
+                transparent 1px,
+                transparent 2px,
+                rgba(0, 217, 255, 0.03) 3px
+            );
+            pointer-events: none;
+            z-index: 3;
+            animation: scanline 8s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
         }
 
         #canvas {
@@ -24,6 +68,15 @@
             width: 100%;
             height: 100%;
             z-index: 1;
+        }
+
+        #gridCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
         }
 
         .content {
@@ -39,6 +92,33 @@
 
         .logo-container {
             animation: float 6s ease-in-out infinite;
+            position: relative;
+        }
+
+        /* Pulso de energia ao redor da logo */
+        .logo-container::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120%;
+            height: 120%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 217, 255, 0.3) 0%, transparent 70%);
+            animation: energyPulse 3s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes energyPulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 0;
+            }
         }
 
         .logo-container img {
@@ -46,8 +126,26 @@
             width: 100%;
             height: auto;
             display: block;
-            filter: drop-shadow(0 0 40px rgba(0, 217, 255, 0.8))
-                    drop-shadow(0 0 80px rgba(0, 217, 255, 0.4));
+            filter:
+                drop-shadow(0 0 20px rgba(0, 217, 255, 1))
+                drop-shadow(0 0 40px rgba(0, 217, 255, 0.8))
+                drop-shadow(0 0 60px rgba(138, 43, 226, 0.6));
+            animation: logoGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes logoGlow {
+            0% {
+                filter:
+                    drop-shadow(0 0 20px rgba(0, 217, 255, 1))
+                    drop-shadow(0 0 40px rgba(0, 217, 255, 0.8))
+                    drop-shadow(0 0 60px rgba(138, 43, 226, 0.6));
+            }
+            100% {
+                filter:
+                    drop-shadow(0 0 30px rgba(0, 217, 255, 1))
+                    drop-shadow(0 0 60px rgba(0, 217, 255, 0.9))
+                    drop-shadow(0 0 80px rgba(138, 43, 226, 0.8));
+            }
         }
 
         @keyframes float {
@@ -67,6 +165,7 @@
     </style>
 </head>
 <body>
+    <canvas id="gridCanvas"></canvas>
     <canvas id="canvas"></canvas>
 
     <div class="content">
@@ -76,6 +175,54 @@
     </div>
 
     <script>
+        // Grid futurista
+        const gridCanvas = document.getElementById('gridCanvas');
+        const gridCtx = gridCanvas.getContext('2d');
+        gridCanvas.width = window.innerWidth;
+        gridCanvas.height = window.innerHeight;
+
+        function drawGrid() {
+            const gridSize = 50;
+            gridCtx.strokeStyle = 'rgba(0, 217, 255, 0.1)';
+            gridCtx.lineWidth = 1;
+
+            // Linhas verticais
+            for (let x = 0; x < gridCanvas.width; x += gridSize) {
+                gridCtx.beginPath();
+                gridCtx.moveTo(x, 0);
+                gridCtx.lineTo(x, gridCanvas.height);
+                gridCtx.stroke();
+            }
+
+            // Linhas horizontais
+            for (let y = 0; y < gridCanvas.height; y += gridSize) {
+                gridCtx.beginPath();
+                gridCtx.moveTo(0, y);
+                gridCtx.lineTo(gridCanvas.width, y);
+                gridCtx.stroke();
+            }
+
+            // Linhas de destaque
+            gridCtx.strokeStyle = 'rgba(0, 217, 255, 0.2)';
+            gridCtx.lineWidth = 2;
+
+            const centerX = gridCanvas.width / 2;
+            const centerY = gridCanvas.height / 2;
+
+            gridCtx.beginPath();
+            gridCtx.moveTo(centerX, 0);
+            gridCtx.lineTo(centerX, gridCanvas.height);
+            gridCtx.stroke();
+
+            gridCtx.beginPath();
+            gridCtx.moveTo(0, centerY);
+            gridCtx.lineTo(gridCanvas.width, centerY);
+            gridCtx.stroke();
+        }
+
+        drawGrid();
+
+        // Partículas
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
 
@@ -83,18 +230,17 @@
         canvas.height = window.innerHeight;
 
         const particles = [];
-        const particleCount = 60; // Reduzido para menos poluição
-        const connectionDistance = 120; // Conexões mais curtas
+        const particleCount = 60;
+        const connectionDistance = 120;
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
-        const logoRadius = 350; // Área maior, mais espaçada
+        const logoRadius = 350;
 
         class Particle {
             constructor(isOrbiting = false) {
                 this.isOrbiting = isOrbiting;
 
                 if (isOrbiting) {
-                    // Partículas que orbitam a logo
                     const angle = Math.random() * Math.PI * 2;
                     const distance = logoRadius + (Math.random() - 0.5) * 100;
                     this.x = centerX + Math.cos(angle) * distance;
@@ -103,8 +249,7 @@
                     this.orbitSpeed = (Math.random() - 0.5) * 0.002;
                     this.orbitRadius = distance;
                 } else {
-                    // Partículas regulares com tendência ao centro
-                    const bias = Math.random() < 0.6 ? 1 : 0; // 60% perto do centro
+                    const bias = Math.random() < 0.6 ? 1 : 0;
                     if (bias) {
                         const angle = Math.random() * Math.PI * 2;
                         const distance = Math.random() * logoRadius * 1.5;
@@ -119,8 +264,13 @@
                 this.vx = (Math.random() - 0.5) * 0.3;
                 this.vy = (Math.random() - 0.5) * 0.3;
                 this.radius = Math.random() * 2 + 1;
+                this.hexagon = Math.random() > 0.5; // 50% hexágonos
 
-                // Partículas perto do centro são maiores e mais brilhantes
+                // Cores cyberpunk
+                this.color = Math.random() > 0.3 ?
+                    { r: 0, g: 217, b: 255 } : // Cyan
+                    { r: 138, g: 43, b: 226 }; // Roxo
+
                 const distFromCenter = Math.sqrt(
                     Math.pow(this.x - centerX, 2) +
                     Math.pow(this.y - centerY, 2)
@@ -135,21 +285,16 @@
 
             update() {
                 if (this.isOrbiting) {
-                    // Movimento orbital
                     this.angle += this.orbitSpeed;
                     this.x = centerX + Math.cos(this.angle) * this.orbitRadius;
                     this.y = centerY + Math.sin(this.angle) * this.orbitRadius;
-
-                    // Variação sutil no raio
                     this.orbitRadius += Math.sin(this.angle * 3) * 0.1;
                 } else {
-                    // Movimento livre com leve atração ao centro
                     const dx = centerX - this.x;
                     const dy = centerY - this.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
 
                     if (dist > logoRadius * 2) {
-                        // Atração suave ao centro
                         this.vx += (dx / dist) * 0.01;
                         this.vy += (dy / dist) * 0.01;
                     }
@@ -157,11 +302,9 @@
                     this.x += this.vx;
                     this.y += this.vy;
 
-                    // Limites da tela
                     if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
                     if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
 
-                    // Limitar velocidade
                     const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
                     if (speed > 2) {
                         this.vx = (this.vx / speed) * 2;
@@ -171,17 +314,36 @@
             }
 
             draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(0, 217, 255, ${this.brightness})`;
-                ctx.shadowBlur = 15 * this.brightness;
-                ctx.shadowColor = '#00D9FF';
-                ctx.fill();
+                const alpha = this.brightness;
+
+                if (this.hexagon) {
+                    // Desenhar hexágono
+                    ctx.beginPath();
+                    for (let i = 0; i < 6; i++) {
+                        const angle = (Math.PI / 3) * i;
+                        const x = this.x + this.radius * Math.cos(angle);
+                        const y = this.y + this.radius * Math.sin(angle);
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                    ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha})`;
+                    ctx.shadowBlur = 20 * alpha;
+                    ctx.shadowColor = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
+                    ctx.fill();
+                } else {
+                    // Desenhar círculo
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha})`;
+                    ctx.shadowBlur = 20 * alpha;
+                    ctx.shadowColor = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
+                    ctx.fill();
+                }
                 ctx.shadowBlur = 0;
             }
         }
 
-        // Criar partículas: 80% normais, 20% orbitando
         for (let i = 0; i < particleCount; i++) {
             const isOrbiting = i < particleCount * 0.2;
             particles.push(new Particle(isOrbiting));
@@ -195,7 +357,6 @@
                     const distance = Math.sqrt(dx * dx + dy * dy);
 
                     if (distance < connectionDistance) {
-                        // Conexões mais fortes perto do centro
                         const midX = (particles[i].x + particles[j].x) / 2;
                         const midY = (particles[i].y + particles[j].y) / 2;
                         const distFromCenter = Math.sqrt(
@@ -203,11 +364,19 @@
                             Math.pow(midY - centerY, 2)
                         );
 
-                        const centerBoost = distFromCenter < logoRadius ? 1.2 : 1;
-                        const opacity = (1 - distance / connectionDistance) * 0.25 * centerBoost;
+                        const centerBoost = distFromCenter < logoRadius ? 1.3 : 1;
+                        const opacity = (1 - distance / connectionDistance) * 0.3 * centerBoost;
+
+                        // Gradiente nas conexões
+                        const gradient = ctx.createLinearGradient(
+                            particles[i].x, particles[i].y,
+                            particles[j].x, particles[j].y
+                        );
+                        gradient.addColorStop(0, `rgba(0, 217, 255, ${opacity})`);
+                        gradient.addColorStop(1, `rgba(138, 43, 226, ${opacity * 0.8})`);
 
                         ctx.beginPath();
-                        ctx.strokeStyle = `rgba(0, 217, 255, ${opacity})`;
+                        ctx.strokeStyle = gradient;
                         ctx.lineWidth = distFromCenter < logoRadius ? 1.5 : 1;
                         ctx.moveTo(particles[i].x, particles[i].y);
                         ctx.lineTo(particles[j].x, particles[j].y);
@@ -235,9 +404,9 @@
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            // Recalcular centro
-            centerX = canvas.width / 2;
-            centerY = canvas.height / 2;
+            gridCanvas.width = window.innerWidth;
+            gridCanvas.height = window.innerHeight;
+            drawGrid();
         });
     </script>
 </body>
